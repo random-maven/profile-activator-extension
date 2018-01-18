@@ -1,0 +1,22 @@
+language: java
+dist: trusty
+jdk:
+- oraclejdk8
+branches:
+  only:
+  - "master"
+  - "develop-.*"
+cache:
+  directories:
+  - "$HOME/.m2"
+  - "./test-repo"
+env:
+  global:
+  - secure: TOeiKB4gyaya77CXqebxr6lGmfHM5jzT62W9CQ4L0ujK2KYpG++3Lpk8N9H1uIzj1/L4SiXTxvEDpvqf1/o6MB8WfghnCQX3aQ4cKgpzbu2777EGuK41XcU1RKeDBVWRJSzYSxck/2Qqx3z0/j8jYgS9QDotw7eIQTP0niE4b736RDuryzPTCB3/AVTCBGVV93dPnU18FQPlqPMBqherbfqHGDjYzV+F0q8ww8deHlLiXwXnoZOaNfDczTyl09E6H6IKJu7YHLOuARHbj94ozrrOAbSXXQxVwI6Cif0IntLPMeYwx26OUydrUbO9nqcAc/rmM5M4lGqtdow0NUreDSIXuZv8o7spbuMdkKyPwoBxXfC+xU/X7MOewil359HVGKIvSgRhv27jcapaAMUtxYrTdHxxF7wkPz7hjBcnuRF2dEEK7LOI66Td08f9uomywP4x1tkhnADihFQkO2aMOHVflrSbqSR5LgZVOim1+rLB4WEkZsbxC6sZ2bXhilxK1yBBks8B4ECKa6I5S1b5boxUCxP/LWYlMjD6WrDuCXKxNWm4siNE87MzKhDNrbnq2qZheT40a9eu+OmfbBLfAutzYDqi6AxGL/uy3SArm6J4Vc95ZN/R4hYVoulQN+sJa+Jrwpfr+wJYQnUyVMzSsszHC8MayzCyKwGOGGiPc7M=
+  - secure: B3VgGPp7zvPBpYq3qakqCKwgeuph6FnETDX8DWhSHAP0KBlxAt45n0PYahy5/in0hAe4M8ENBCp4gn20ysc0Bm9Pm+5i5odpbhs0CrUOyJSl7h+0ZPm5ySewpK3bxbs0JkYnOBNpV+YgJhkBuJ+Msl09c2CXy+qSVqp0xEFOsfa/8cuFoCM5Zx+73AV+0ymMLM4EHgz0Vw0yxZf2TGmzZRN5kamiGWx0En+ZCPQXa+P5XnuBeMTiMp/i7Qwb1Xxq5q8ukbqyx6yiv6Xwo60x7cZvunTkXEYAd4JB43OzUV6ToNA8pjZCVXCUuJ7cdIACw+6AZfNLbB8tZ3wJQfs4N+xqZMlI3EWlEVLQG/TXzl/wHVjsdteZte7PxEAeB7O6UGBWfr6NCElw8sVTtPjpEMCXVI5LadMMtqT4APKC7fjkgB5MyBFuQaLWx5PfFYymuHg4QirOPe0iORDVRaE97CyX3V4jSnZ5T2cbU9V6G0y9c6lit3mPcJu0ma9vrEJrY0IpRiblyFKMviNtwbRu3U/VpjLNBj3qO708y4QbbvXD8yKh202/67wddbTCGDixD+sVbCTsbLecSi3N972Vuz08vZLy/wMmFtEhJ8c6en2UrC7HhMcgsrw+8F0Fxxhw1f3/dVccmd5zDK8VG9bbj28EOSTKhaPqp4Wm493T+AM=
+install:
+- "/bin/true"
+script:
+- cp -f ./.mvn/ci/settings.xml $HOME/.m2/settings.xml
+- "./.mvn/verify.sh || exit 1"
+- "./.mvn/release-bintray.sh || exit 1"

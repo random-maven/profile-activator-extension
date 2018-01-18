@@ -1,0 +1,6 @@
+
+#
+# Publish MVEL Script Engine.
+#
+
+org.mvel2.jsr223.MvelScriptEngineFactory

@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.carrotgarden.maven</groupId>
+    <artifactId>profile-activator-extension-test-scalascript</artifactId>
+    <version>0-SNAPSHOT</version>
+
+    <properties>
+        <property1>abrakadabra</property1>
+        <property2>abrakadabra</property2>
+    </properties>
+
+    <profiles>
+
+        <profile>
+            <id>scalascript</id>
+            <activation>
+                <!-- Magic property managed by the extension. -->
+                <property>
+                    <name>[ACTIVATOR:SCALASCRIPT]</name>
+                    <value>
+<![CDATA[
+    // This is Scala.
+    def hasVar1 = script.hasVariable("property1")
+    def hasVar2 = script.hasVariable("property2")
+    if( hasVar1 && hasVar2 ) {
+        println("[CODE] Properties present.")     
+        def property1 = script["property1"]
+        def property2 = script["property2"]
+        property1 == property2
+    } else {
+        println("[CODE] Properties missing.")     
+        false
+    }
+]]>
+                    </value>
+                </property>
+            </activation>
+            <!-- Produce marker file for integration test. -->
+            <properties>
+                <magic.file>${project.basedir}/target/magic-file.md</magic.file>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>magic-file</id>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <target name="magic-file">
+                                        <echo file="${magic.file}" append="false">
+                                            ${magic.file}
+                                        </echo>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+</project>

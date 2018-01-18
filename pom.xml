@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.carrotgarden.a</groupId>
+        <artifactId>carrot-a</artifactId>
+        <version>0-SNAPSHOT</version>
+        <relativePath>.mvn</relativePath>
+    </parent>
+
+    <groupId>com.carrotgarden.maven</groupId>
+    <artifactId>profile-activator-extension</artifactId>
+    <version>${revision}</version>
+    <packaging>jar</packaging>
+
+    <name>Profile Activator Extension</name>
+
+    <description>Provide flexible Maven profile activation via script</description>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+        </license>
+    </licenses>
+
+    <url>https://github.com/random-maven/profile-activator-extension</url>
+    <scm>
+        <url>https://github.com/random-maven/profile-activator-extension</url>
+        <connection>scm:git:git@github.com:random-maven/profile-activator-extension.git</connection>
+        <developerConnection>scm:git:git@github.com:random-maven/profile-activator-extension.git</developerConnection>
+    </scm>
+
+    <properties>
+        <release.epoch>1.1</release.epoch>
+        <bintray.subject>random-maven</bintray.subject>
+        <bintray.repository>maven</bintray.repository>
+    </properties>
+
+    <dependencies>
+
+        <!-- Maven. -->
+        <!-- Uses only components provided by maven distro. -->
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>3.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-component-annotations</artifactId>
+            <version>1.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Scripting. -->
+
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+            <version>2.4.0.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-jsr223</artifactId>
+            <version>2.4.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+        </dependency>
+
+        <!-- Testing. -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Package as Maven extension. -->
+            <plugin>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-component-metadata</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-metadata</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Invoke integration tests. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-invoker-plugin</artifactId>
+                <configuration>
+                    <!-- <debug>true</debug> -->
+                    <showErrors>true</showErrors>
+                    <streamLogs>true</streamLogs>
+                    <localRepositoryPath>${project.basedir}/test-repo</localRepositoryPath>
+                    <pomIncludes>
+                        <include>test-groovyscript</include>
+                        <include>test-javascript</include>
+                        <include>test-mvelscript</include>
+                    </pomIncludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
