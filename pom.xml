@@ -33,7 +33,7 @@
     </scm>
 
     <properties>
-        <release.epoch>1.2</release.epoch>
+        <release.epoch>1.3</release.epoch>
         <bintray.subject>random-maven</bintray.subject>
         <bintray.repository>maven</bintray.repository>
     </properties>
