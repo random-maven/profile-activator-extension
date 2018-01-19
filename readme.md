@@ -3,6 +3,8 @@
 
 Provide flexible Maven profile activation via script.
 
+Reference feature implementation, [vote for MNG-6345](https://issues.apache.org/jira/browse/MNG-6345).
+
 [![Apache License, Version 2.0, January 2004](https://img.shields.io/github/license/mojohaus/versions-maven-plugin.svg?label=License)](http://www.apache.org/licenses/)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension)
 [![Bintray Download](https://api.bintray.com/packages/random-maven/maven/profile-activator-extension/images/download.svg) ](https://bintray.com/random-maven/maven/profile-activator-extension/_latestVersion)
@@ -29,7 +31,7 @@ Profile activator is configured in two steps:
 
 1. Register [project extension](https://github.com/random-maven/profile-activator-extension/blob/master/.mvn/extensions.xml)
 ```
-${project}/.mvn/extensions.xml
+${project.basedir}/.mvn/extensions.xml
 ```
 ```xml
 <extension>
@@ -62,8 +64,12 @@ ${project}/.mvn/extensions.xml
 Tip: check [examples first](https://github.com/random-maven/profile-activator-extension/tree/master/src/it).
 
 Activator script has access to
-* merged properties, as a map `Map<String, String>` named `value`
-* resolved project model, as an object `org.apache.maven.model.Model` named `project`
+* merged properties, as a map of type 
+  [`java.util.Map<String, String>`](https://docs.oracle.com/javase/8/docs/api/java/util/Map.html)
+  named `value`
+* resolved project model, as an object of type
+  [`org.apache.maven.model.Model`](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html)
+  named `project`
 
 #### Merged Properties 
 
@@ -84,8 +90,8 @@ Example default scope access syntax:
 the following expression extracts the value of
 ```pom.xml/<properties>/<property1>``` 
 * Groovy syntax: not available, use `value["property1"]` 
-* JavaScript syntax: `property1` (same as `value["property1"]`)
-* MVEL Script syntax: `property1` (same as `value["property1"]`) 
+* JavaScript syntax: `property1` (same result as `value["property1"]`)
+* MVEL Script syntax: `property1` (same result as `value["property1"]`) 
 
 Example `value` map access syntax:
 the following expression extracts the value of ```user.name``` 
@@ -97,8 +103,8 @@ and which is considered "invalid name" in the default scope:
 
 #### Resolved Project Model 
 
-Resolved [project pom.xml](https://maven.apache.org/pom.html)
-contains interpolated project descriptor
+Resolved interpolated [project descriptor](https://maven.apache.org/pom.html)
+is exposed
 in the form of [project model bean](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html)
 .
 
@@ -107,9 +113,9 @@ Activator script has access to the project model as an object named `project`.
 Example `project` object access syntax:
 the following expression extracts the value of ```pom.xml/<packaging>``` 
 which is available as [`public String getPackaging()`](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html#getPackaging--)
-* Groovy syntax: `project.packaging` (same as `project.getPackaging()`)
-* JavaScript syntax: `project.packaging` (same as `project.getPackaging()`) 
-* MVEL Script syntax: `project.packaging` (same as `project.getPackaging()`)
+* Groovy syntax: `project.packaging` (same result as `project.getPackaging()`)
+* JavaScript syntax: `project.packaging` (same result as `project.getPackaging()`) 
+* MVEL Script syntax: `project.packaging` (same result as `project.getPackaging()`)
 
 #### Variable existence check
 
