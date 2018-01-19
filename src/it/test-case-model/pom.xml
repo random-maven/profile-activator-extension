@@ -4,35 +4,58 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.carrotgarden.maven</groupId>
-    <artifactId>profile-activator-extension-test-javascript</artifactId>
+    <artifactId>profile-activator-extension-case-model</artifactId>
     <version>0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
 
+    <!-- These are interpolated by activator. -->
     <properties>
-        <property1>abrakadabra</property1>
-        <property2>abrakadabra</property2>
+        <property1>${project.build.finalName}</property1>
+        <property2>${project.build.outputDirectory}</property2>
     </properties>
+
+    <!-- Testing with custom packaging. -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>3.5.0</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
 
+        <!-- Verify pom.xml project model access. -->
         <profile>
-            <id>javascript-verify</id>
+            <id>case-model</id>
             <activation>
                 <!-- Magic property managed by the extension. -->
                 <property>
-                    <name>[ACTIVATOR:JAVASCRIPT]</name>
+                    <name>[ACTIVATOR:MVELSCRIPT]</name>
                     <value>
 <![CDATA[
-    // This is JavaScript.
-    // Note: can use default scope.
-    var hasVar1 = typeof property1 !== 'undefined';
-    var hasVar2 = typeof property2 !== 'undefined';
-    if( hasVar1 && hasVar2 ) {
-        print("[CODE] Properties present.");
-        property1 == property2 && project.packaging == "jar";
-    } else {
-        print("[CODE] Properties missing.");
-        false;
-    }
+
+    // Render pom.xml
+    System.out.println("[MODEL] pomFile    = " + project.pomFile );
+    System.out.println("[MODEL] groupId    = " + project.groupId );
+    System.out.println("[MODEL] artifactId = " + project.artifactId );
+    System.out.println("[MODEL] version    = " + project.version );
+    System.out.println("[MODEL] packaging  = " + project.packaging );
+    System.out.println("[MODEL] property1  = " + property1 );
+    System.out.println("[MODEL] property2  = " + property2 );
+    
+    // Verify project fields.
+    hasGroup = (project.groupId == "com.carrotgarden.maven");
+    hasArtifact = (project.artifactId == "profile-activator-extension-case-model");
+    hasVersion = (project.version == "0-SNAPSHOT");
+    hasPackaging = (project.packaging == "bundle");
+    
+    // Provide activation result.
+    hasGroup && hasArtifact && hasVersion && hasPackaging;
+    
 ]]>
                     </value>
                 </property>
@@ -66,28 +89,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>javascript-showcase</id>
-            <activation>
-                <!-- Magic property managed by the extension. -->
-                <property>
-                    <name>[ACTIVATOR:JAVASCRIPT]</name>
-                    <value>
-<![CDATA[
-    // Access property with a dot.
-    if( value["env.HOME"] ) {
-        print("[CODE] env.HOME=" + value["env.HOME"]);
-    } else {
-        print("[CODE] env.HOME?");
-    }
-    //
-    false;
-]]>
-                    </value>
-                </property>
-            </activation>
         </profile>
 
     </profiles>

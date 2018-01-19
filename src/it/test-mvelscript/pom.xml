@@ -10,6 +10,7 @@
     <properties>
         <property1>abrakadabra</property1>
         <property2>abrakadabra</property2>
+        <property3>${project.artifactId}</property3>
     </properties>
 
     <profiles>
@@ -22,11 +23,11 @@
                     <name>[ACTIVATOR:MVELSCRIPT]</name>
                     <value>
 <![CDATA[
-    // This is MVEL.
+    // This is MVEL Script.
     // Note: can use default scope.
     if( isdef property1 && isdef property2 ) {
         System.out.println("[CODE] Properties present.");
-        property1 == property2;
+        property1 == property2 && project.packaging == "jar";
     } else {
         System.out.println("[CODE] Properties missing.");
         false;
@@ -76,10 +77,12 @@
 <![CDATA[
     // Access property with a dot.
     if( isdef env.HOME ) {
-        System.out.println("[CODE] env.HOME=" + script["env.HOME"]);
+        System.out.println("[CODE] env.HOME=" + value["env.HOME"]);
     } else {
         System.out.println("[CODE] env.HOME?");
     }
+    // Review interpoalted properties.
+    System.out.println("[CODE] property3=" + property3);
     //
     false;
 ]]>

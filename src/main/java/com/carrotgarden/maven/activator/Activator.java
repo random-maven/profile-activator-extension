@@ -1,7 +1,7 @@
 package com.carrotgarden.maven.activator;
 
 /**
- * Activator name space.
+ * Extension activator name space.
  */
 public interface Activator {
 

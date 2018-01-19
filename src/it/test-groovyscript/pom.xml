@@ -24,11 +24,11 @@
 <![CDATA[
     // This is Groovy.
     // Note: no default scope.
-    if( script["property1"] && script["property2"] ) {
+    if( value["property1"] && value["property2"] ) {
         println("[CODE] Properties present.")     
-        def property1 = script["property1"]
-        def property2 = script["property2"]
-        property1 == property2
+        def property1 = value["property1"]
+        def property2 = value["property2"]
+        property1 == property2 && project.packaging == "jar"
     } else {
         println("[CODE] Properties missing.")     
         false
@@ -77,8 +77,8 @@
                     <value>
 <![CDATA[
     // Access property with a dot.
-    if( script["env.HOME"] ) {
-        println("[CODE] env.HOME=" + script["env.HOME"]);
+    if( value["env.HOME"] ) {
+        println("[CODE] env.HOME=" + value["env.HOME"]);
     } else {
         println("[CODE] env.HOME?");
     }

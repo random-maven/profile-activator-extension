@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import javax.script.ScriptEngine;
@@ -16,6 +17,8 @@ import javax.script.ScriptEngineManager;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Profile;
+import org.apache.maven.model.building.DefaultModelBuildingRequest;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.model.building.ModelProblem.Severity;
 import org.apache.maven.model.building.ModelProblem.Version;
 import org.apache.maven.model.building.ModelProblemCollector;
@@ -27,6 +30,59 @@ import org.apache.maven.model.profile.ProfileActivationContext;
  * Static activator functions.
  */
 public interface SupportFunction {
+
+	/**
+	 * Provide script execution context variables.
+	 */
+	static Map<String, Object> bindingsFrom(ProfileActivationContext context, Model project) {
+		// Note: keep order.
+		Map<String, Object> bindings = new HashMap<>();
+		// Inject project props: override defaults
+		bindings.putAll(context.getProjectProperties());
+		bindings.putAll(bindingsFrom(project.getProperties()));
+		// Inject system props, override previous.
+		bindings.putAll(context.getSystemProperties());
+		// Inject user props, override previous.
+		bindings.putAll(context.getUserProperties());
+		// Expose default variable context.
+		bindings.put("value", bindings);
+		// Expose resolved pom.xml model.
+		bindings.put("project", project);
+		return bindings;
+	}
+
+	/**
+	 * Provide script execution context variables.
+	 */
+	static Map<String, Object> bindingsFrom(Properties properties) {
+		Map<String, Object> bindings = new HashMap<>();
+		properties.forEach((key, value) -> bindings.put(key.toString(), value.toString()));
+		return bindings;
+	}
+
+	/**
+	 * Default model resolution request.
+	 */
+	static ModelBuildingRequest buildRequest( //
+			ProfileActivationContext context //
+	) {
+		ModelBuildingRequest request = new DefaultModelBuildingRequest();
+		request.setPomFile(projectPOM(context));
+		request.setSystemProperties(convertFrom(context.getSystemProperties()));
+		request.setUserProperties(convertFrom(context.getUserProperties()));
+		request.setLocationTracking(false);
+		request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+		return request;
+	}
+
+	/**
+	 * Change properties format.
+	 */
+	static Properties convertFrom(Map<String, String> map) {
+		Properties props = new Properties();
+		props.putAll(map);
+		return props;
+	}
 
 	/**
 	 * Discover script manager from Plexus class path.
@@ -104,6 +160,22 @@ public interface SupportFunction {
 	}
 
 	/**
+	 * Extract optional project pom.xml file from context.
+	 */
+	static File projectPOM(ProfileActivationContext context) {
+		File basedir = context.getProjectDirectory();
+		if (basedir == null) {
+			return null;
+		}
+		File pomFile = new File(basedir, "pom.xml");
+		if (pomFile.exists()) {
+			return pomFile.getAbsoluteFile();
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Extract profile property name.
 	 */
 	static String propertyName(Profile profile) {
@@ -155,10 +227,14 @@ public interface SupportFunction {
 		Map<String, Object> sortedMap = new TreeMap<>(map);
 		StringBuilder text = new StringBuilder();
 		for (Entry<String, Object> entry : sortedMap.entrySet()) {
+			String key = entry.getKey();
+			Object value = entry.getValue();
 			text.append("   ");
-			text.append(entry.getKey());
-			text.append("=");
-			text.append(entry.getValue());
+			text.append(key);
+			text.append(" : ");
+			text.append(value.getClass().getSimpleName());
+			text.append(" = ");
+			text.append(value.toString());
 			text.append("\n");
 		}
 		return text.toString();
@@ -196,6 +272,11 @@ public interface SupportFunction {
 		return text.toString();
 	}
 
+	static String renderModel(Model model) {
+		StringBuilder text = new StringBuilder();
+		return text.toString();
+	}
+
 	/**
 	 * Report list as flat string.
 	 */
@@ -222,21 +303,6 @@ public interface SupportFunction {
 		}
 		// Engine is missing.
 		return null;
-	}
-
-	/**
-	 * Provide script engine context variables.
-	 */
-	static Map<String, Object> variablesFrom(ProfileActivationContext context) {
-		// Default script variable context.
-		Map<String, Object> variables = new HashMap<>();
-		// Note: keep order.
-		variables.putAll(context.getProjectProperties());
-		variables.putAll(context.getSystemProperties());
-		variables.putAll(context.getUserProperties());
-		// Custom variable with default context copy.
-		variables.put("script", variables);
-		return variables;
 	}
 
 }

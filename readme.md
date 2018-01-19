@@ -14,6 +14,7 @@ Similar extensions
 
 Extension features
 * comprehensive [logging](https://github.com/random-maven/profile-activator-extension/blob/master/note/activator-logging.md)
+* exposes resolved [project pom.xml](https://maven.apache.org/pom.html)
 * works with Maven 3.5
 ([activation via AND](https://issues.apache.org/jira/browse/MNG-4565))
 * scripting with 
@@ -45,7 +46,7 @@ ${project}/.mvn/extensions.xml
          <name>[ACTIVATOR:MVELSCRIPT]</name>
          <value>
 <![CDATA[
-   isdef property1 && isdef property2 && property1 == property2 
+   isdef property1 && isdef property2 && property1 == "hello-maven" && project.packaging == "bundle" 
 ]]>
          </value>
        </property>
@@ -58,26 +59,74 @@ ${project}/.mvn/extensions.xml
 
 ### Script variables
 
-Activator script has a merged view of
+Tip: check [examples first](https://github.com/random-maven/profile-activator-extension/tree/master/src/it).
+
+Activator script has access to
+* merged properties, as a map `Map<String, String>` named `value`
+* resolved project model, as an object `org.apache.maven.model.Model` named `project`
+
+#### Merged Properties 
+
+Activator script has ordered and merged view of
 * `project` properties: `pom.xml/<properties>`
 * `system` properties form: `System.getProperties()`
 * `user` properties from user-provided command line `-D` options
 
-Variable scopes
-* variables are injected in the default script variable scope;
-  note that some scripting engines have no default scope
-* there is also an extension-provided variable container `script`,
-  which contains a copy of the default scope,
-  use it to access variables with script-invalid characters in the name
-  or with engines which have no default scope
+Merged properties scopes
+* properties are injected in the default script variable scope
+  (for scripting engines that have such)
+* there is also an extension-provided map `value`,
+  which contains a copy of the default scope
+* use `value` map to access variables
+  with dot in the name or when there is no default scope
 
-Example `script` variable container access syntax for a given script engine flavor:
-the following expression extracts the value of ```user.name``` system property:
-* Groovy syntax: `script["user.name"]` 
-* JavaScript syntax: `script["user.name"]` 
-* MVEL Script syntax: `script["user.name"]` 
+Example default scope access syntax:
+the following expression extracts the value of
+```pom.xml/<properties>/<property1>``` 
+* Groovy syntax: not available, use `value["property1"]` 
+* JavaScript syntax: `property1` (same as `value["property1"]`)
+* MVEL Script syntax: `property1` (same as `value["property1"]`) 
 
-  
+Example `value` map access syntax:
+the following expression extracts the value of ```user.name``` 
+which originally comes from a system property,
+and which is considered "invalid name" in the default scope:
+* Groovy syntax: `value["user.name"]` 
+* JavaScript syntax: `value["user.name"]` 
+* MVEL Script syntax: `value["user.name"]` 
+
+#### Resolved Project Model 
+
+Resolved [project pom.xml](https://maven.apache.org/pom.html)
+contains interpolated project descriptor
+in the form of [project model bean](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html)
+.
+
+Activator script has access to the project model as an object named `project`.
+
+Example `project` object access syntax:
+the following expression extracts the value of ```pom.xml/<packaging>``` 
+which is available as [`public String getPackaging()`](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html#getPackaging--)
+* Groovy syntax: `project.packaging` (same as `project.getPackaging()`)
+* JavaScript syntax: `project.packaging` (same as `project.getPackaging()`) 
+* MVEL Script syntax: `project.packaging` (same as `project.getPackaging()`)
+
+#### Variable existence check
+
+Normally, scripting engine will throw an error
+when trying to access a variable which is not defined. 
+
+Example variable existence check syntax:
+* Groovy syntax: not available, use null-test: `if ( value["property1"] ) { ... }`
+* JavaScript syntax: `if ( typeof property1 !== 'undefined' )  { ... }`
+* MVEL Script syntax: `if ( isdef property1 ) { ... }`
+
+In practice, `null-test` is sufficient in most cases
+* `if ( value["property1"] ) { ... }`
+
+Project [model members](http://maven.apache.org/ref/3.5.2/maven-model/apidocs/org/apache/maven/model/Model.html)
+are always defined, but can return `null`. 
+
 ### Build yourself
 
 ```

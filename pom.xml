@@ -33,7 +33,7 @@
     </scm>
 
     <properties>
-        <release.epoch>1.1</release.epoch>
+        <release.epoch>1.2</release.epoch>
         <bintray.subject>random-maven</bintray.subject>
         <bintray.repository>maven</bintray.repository>
     </properties>
@@ -111,6 +111,7 @@
                     <streamLogs>true</streamLogs>
                     <localRepositoryPath>${project.basedir}/test-repo</localRepositoryPath>
                     <pomIncludes>
+                        <include>test-case-model</include>
                         <include>test-groovyscript</include>
                         <include>test-javascript</include>
                         <include>test-mvelscript</include>

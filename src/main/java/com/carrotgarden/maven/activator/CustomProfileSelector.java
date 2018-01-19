@@ -17,11 +17,10 @@ import org.codehaus.plexus.logging.Logger;
 
 /**
  * Profile selector which combines profiles activated by custom and default
- * activators.
+ * activators. Overrides "default" provider.
  */
 @Component( //
 		role = ProfileSelector.class, //
-		// Overrides default provider.
 		hint = "default" //
 )
 public class CustomProfileSelector extends DefaultProfileSelector {
