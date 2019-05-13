@@ -29,14 +29,14 @@ public class CustomProfileSelector extends DefaultProfileSelector {
 	protected Logger logger;
 
 	/**
-	 * Collect only custom activators.
+	 * Collect only custom activators. Default activators are in super.
 	 */
-	// Note: keep field name different from super.
+	// Note: keep field name different from super to ensure proper injection.
 	@Requirement(role = ActivatorAny.class)
 	protected List<ProfileActivator> activatorList = new ArrayList<>();
 
 	/**
-	 * Profiles activated by custom and default activators.
+	 * Profiles activated by both custom and default activators.
 	 */
 	@Override
 	public List<Profile> getActiveProfiles( //
@@ -44,9 +44,9 @@ public class CustomProfileSelector extends DefaultProfileSelector {
 			ProfileActivationContext context, //
 			ModelProblemCollector problems //
 	) {
-		List<Profile> customList = new ArrayList<>(profiles.size());
+		List<Profile> customList = new ArrayList<>();
 		for (Profile profile : profiles) {
-			if (isActive(profile, context, problems)) {
+			if (hasActive(profile, context, problems)) {
 				customList.add(profile);
 			}
 		}
@@ -55,33 +55,32 @@ public class CustomProfileSelector extends DefaultProfileSelector {
 		resolvedList.addAll(customList);
 		resolvedList.addAll(defaultList);
 		if (logger.isDebugEnabled() && resolvedList.size() > 0) {
-			logger.debug("SELECT: " + Arrays.toString(resolvedList.toArray()));
+			logger.info("Activator SELECT: " + Arrays.toString(resolvedList.toArray()));
 		}
 		return resolvedList;
 	}
 
 	/**
+	 * Applies only to custom activators.
+	 * 
 	 * Note: "AND" for custom activators. See super.
 	 */
-	protected boolean isActive( //
+	protected boolean hasActive( //
 			Profile profile, //
 			ProfileActivationContext context, //
 			ModelProblemCollector problems //
 	) {
-		boolean isActive = false;
+		int countActive = 0;
+		int countPresent = 0;
 		for (ProfileActivator activator : activatorList) {
 			if (activator.presentInConfig(profile, context, problems)) {
-				// "OR"
-				isActive |= true;
+				countPresent++;
+				if (activator.isActive(profile, context, problems)) {
+					countActive++;
+				}
 			}
 		}
-		for (ProfileActivator activator : activatorList) {
-			if (activator.presentInConfig(profile, context, problems)) {
-				// "AND"
-				isActive &= activator.isActive(profile, context, problems);
-			}
-		}
-		return isActive;
+		return (countActive > 0) && (countActive == countPresent);
 	}
 
 }

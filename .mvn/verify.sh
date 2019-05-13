@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e -u
 
 #
@@ -7,4 +7,4 @@ set -e -u
 
 cd "${BASH_SOURCE%/*}/.."
 
-./mvnw.sh clean verify -B
+./mvnw.sh clean verify -e -B -V

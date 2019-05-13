@@ -17,11 +17,11 @@ public class ActivatorJavaScript extends ActivatorBase {
 	}
 
 	/**
-	 * @see jdk.nashorn.api.scripting.NashornScriptEngineFactory
+	 * @see com.sun.phobos.script.javascript.RhinoScriptEngineFactory
 	 */
 	@Override
 	public String activatorEngine() {
-		return "javascript";
+		return "rhino";
 	}
 
 }

@@ -6,9 +6,11 @@ Provide flexible Maven profile activation via script.
 Reference feature implementation, [vote for MNG-6345](https://issues.apache.org/jira/browse/MNG-6345).
 
 [![Apache License, Version 2.0, January 2004](https://img.shields.io/github/license/mojohaus/versions-maven-plugin.svg?label=License)](http://www.apache.org/licenses/)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension)
-[![Bintray Download](https://api.bintray.com/packages/random-maven/maven/profile-activator-extension/images/download.svg) ](https://bintray.com/random-maven/maven/profile-activator-extension/_latestVersion)
 [![Travis Status](https://travis-ci.org/random-maven/profile-activator-extension.svg?branch=master)](https://travis-ci.org/random-maven/profile-activator-extension/builds)
+
+| Install  | Production Release | Development Release |
+|----------|--------------------|---------------------|
+| Artifact | [![Central][central_icon]][central_link] | [![Bintray][bintray_icon]][bintray_link] | 
 
 Similar extensions
 * [kpiwko/el-profile-activator-extension](https://github.com/kpiwko/el-profile-activator-extension)
@@ -141,3 +143,9 @@ git clone git@github.com:random-maven/profile-activator-extension.git
 cd profile-activator-extension
 ./mvnw.sh clean install -B -P skip-test
 ```
+
+[central_icon]: https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension/badge.svg?style=plastic
+[central_link]: https://maven-badges.herokuapp.com/maven-central/com.carrotgarden.maven/profile-activator-extension
+
+[bintray_icon]: https://api.bintray.com/packages/random-maven/maven/profile-activator-extension/images/download.svg
+[bintray_link]: https://bintray.com/random-maven/maven/profile-activator-extension/_latestVersion

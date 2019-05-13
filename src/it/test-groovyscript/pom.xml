@@ -83,7 +83,7 @@
         println("[CODE] env.HOME?");
     }
     //
-    false;
+    false; // disable profile
 ]]>
                     </value>
                 </property>
@@ -91,5 +91,29 @@
         </profile>
 
     </profiles>
+
+    <build>
+
+        <plugins>
+
+            <!-- Report active profiles on console. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>show-profiles</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+    </build>
 
 </project>

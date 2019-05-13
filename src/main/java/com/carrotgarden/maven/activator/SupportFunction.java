@@ -23,13 +23,68 @@ import org.apache.maven.model.building.ModelProblem.Severity;
 import org.apache.maven.model.building.ModelProblem.Version;
 import org.apache.maven.model.building.ModelProblemCollector;
 import org.apache.maven.model.building.ModelProblemCollectorRequest;
+import org.apache.maven.model.building.ModelSource;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.profile.ProfileActivationContext;
+import org.apache.maven.model.resolution.ModelResolver;
+import org.apache.maven.project.ProjectModelResolver;
 
 /**
  * Static activator functions.
  */
 public interface SupportFunction {
+
+	/**
+	 * Profile resolution identity.
+	 */
+	static class Identity {
+
+		final protected Profile profile;
+		final protected ProfileActivationContext context;
+
+		protected Identity(Profile profile, ProfileActivationContext context) {
+			this.context = context;
+			this.profile = profile;
+		}
+
+		@Override
+		public int hashCode() {
+			return profile.toString().hashCode();
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other instanceof Identity) {
+				Identity that = (Identity) other;
+				boolean sameProfile = hasSameProfile(this.profile, that.profile);
+				boolean sameContext = hasSameContext(this.context, that.context);
+				return sameProfile && sameContext;
+			}
+			return false;
+		}
+
+	}
+
+	static Identity identityFrom(Profile profile, ProfileActivationContext context) {
+		return new Identity(profile, context);
+	}
+
+	/**
+	 * Provide script execution context variables.
+	 */
+	static Map<String, Object> bindingsFrom(ProfileActivationContext context) {
+		// Note: keep order.
+		Map<String, Object> bindings = new HashMap<>();
+		// Inject project props: override defaults
+		bindings.putAll(context.getProjectProperties());
+		// Inject system props, override previous.
+		bindings.putAll(context.getSystemProperties());
+		// Inject user props, override previous.
+		bindings.putAll(context.getUserProperties());
+		// Expose default variable context.
+		bindings.put("value", bindings);
+		return bindings;
+	}
 
 	/**
 	 * Provide script execution context variables.
@@ -60,6 +115,30 @@ public interface SupportFunction {
 		return bindings;
 	}
 
+	static boolean hasSameContext(ProfileActivationContext ctx1, ProfileActivationContext ctx2) {
+		return hasSameProject(ctx1, ctx2) && hasSameSystemProps(ctx1, ctx2) && hasSameUserProps(ctx1, ctx2);
+	}
+
+	static boolean hasSameProject(ProfileActivationContext ctx1, ProfileActivationContext ctx2) {
+		boolean sameProject = projectPOM(ctx1).equals(projectPOM(ctx2));
+		return sameProject;
+	}
+
+	static boolean hasSameSystemProps(ProfileActivationContext ctx1, ProfileActivationContext ctx2) {
+		boolean sameSystemProps = ctx1.getSystemProperties().equals(ctx2.getSystemProperties());
+		return sameSystemProps;
+	}
+
+	static boolean hasSameUserProps(ProfileActivationContext ctx1, ProfileActivationContext ctx2) {
+		boolean sameUserProps = ctx1.getUserProperties().equals(ctx2.getUserProperties());
+		return sameUserProps;
+	}
+
+	static boolean hasSameProfile(Profile pro1, Profile pro2) {
+		boolean sameProfile = pro1.toString().equals(pro2.toString());
+		return sameProfile;
+	}
+
 	/**
 	 * Default model resolution request.
 	 */
@@ -67,12 +146,23 @@ public interface SupportFunction {
 			ProfileActivationContext context //
 	) {
 		ModelBuildingRequest request = new DefaultModelBuildingRequest();
+		// request.setModelResolver(modelResolver()); // TODO #2
+		//
+		request.setActiveProfileIds(context.getActiveProfileIds());
+		request.setInactiveProfileIds(context.getInactiveProfileIds());
+		//
 		request.setPomFile(projectPOM(context));
 		request.setSystemProperties(convertFrom(context.getSystemProperties()));
 		request.setUserProperties(convertFrom(context.getUserProperties()));
+		//
 		request.setLocationTracking(false);
 		request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
 		return request;
+	}
+
+	// TODO #2
+	static ModelResolver modelResolver() {
+		return null;
 	}
 
 	/**
@@ -159,20 +249,29 @@ public interface SupportFunction {
 		}
 	}
 
+	static File invalidFile = new File("<invalid>");
+
 	/**
 	 * Extract optional project pom.xml file from context.
 	 */
 	static File projectPOM(ProfileActivationContext context) {
 		File basedir = context.getProjectDirectory();
 		if (basedir == null) {
-			return null;
+			return invalidFile;
 		}
 		File pomFile = new File(basedir, "pom.xml");
 		if (pomFile.exists()) {
 			return pomFile.getAbsoluteFile();
 		} else {
-			return null;
+			return invalidFile;
 		}
+	}
+
+	/**
+	 * Extract unique project/profile identity.
+	 */
+	static String profileMemento(Profile profile, ProfileActivationContext context) {
+		return "::" + projectPOM(context) + "::" + profileId(profile);
 	}
 
 	/**

@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.carrotgarden.maven</groupId>
+    <artifactId>profile-activator-extension-issue-2</artifactId>
+    <version>1.0.0</version>
+
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>org.jboss.spec</groupId>
+                <artifactId>jboss-javaee-7.0</artifactId>
+                <version>1.0.0.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>foo.env-development</id>
+            <activation>
+                <property>
+                    <name>[ACTIVATOR:MVELSCRIPT]</name>
+                    <value>
+<![CDATA[
+if (isdef foo.env) {
+  value["foo.env"] == "development";
+} else {
+  true;
+}
+]]>
+          </value>
+                </property>
+            </activation>
+        </profile>
+    </profiles>
+
+    <build>
+
+        <plugins>
+
+            <!-- Report active profiles on console. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>show-profiles</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+</project>

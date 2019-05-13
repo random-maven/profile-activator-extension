@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.carrotgarden.maven</groupId>
-    <artifactId>profile-activator-extension-case-model</artifactId>
+    <artifactId>profile-activator-extension-test-model</artifactId>
     <version>0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
@@ -14,23 +14,44 @@
         <property2>${project.build.outputDirectory}</property2>
     </properties>
 
-    <!-- Testing with custom packaging. -->
     <build>
+
         <plugins>
+        
+            <!-- Testing with custom packaging. -->
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>3.5.0</version>
                 <extensions>true</extensions>
             </plugin>
+
+
+            <!-- Report active profiles on console. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>show-profiles</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
+
     </build>
 
     <profiles>
 
         <!-- Verify pom.xml project model access. -->
         <profile>
-            <id>case-model</id>
+            <id>model-access</id>
             <activation>
                 <!-- Magic property managed by the extension. -->
                 <property>
@@ -49,7 +70,7 @@
     
     // Verify project fields.
     hasGroup = (project.groupId == "com.carrotgarden.maven");
-    hasArtifact = (project.artifactId == "profile-activator-extension-case-model");
+    hasArtifact = (project.artifactId == "profile-activator-extension-test-model");
     hasVersion = (project.version == "0-SNAPSHOT");
     hasPackaging = (project.packaging == "bundle");
     

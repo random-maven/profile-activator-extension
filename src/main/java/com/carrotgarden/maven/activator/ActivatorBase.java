@@ -3,7 +3,9 @@ package com.carrotgarden.maven.activator;
 import static com.carrotgarden.maven.activator.SupportFunction.*;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.script.Bindings;
@@ -19,9 +21,12 @@ import org.apache.maven.model.profile.ProfileActivationContext;
 import org.apache.maven.model.profile.activation.ProfileActivator;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
+import org.eclipse.aether.impl.RemoteRepositoryManager;
+
+import com.carrotgarden.maven.activator.SupportFunction.Identity;
 
 /**
- * Shared implementation of extension profile activators.
+ * Shared implementation of extension profile activators. Singleton component.
  */
 public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 
@@ -38,9 +43,43 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 	protected ModelBuilder builder;
 
 	/**
-	 * Remember processed projects pom.xml file to control recursion.
+	 * Manager provided by Maven runtime.
 	 */
-	protected Set<File> projectMemento = new HashSet<>();
+	@Requirement
+	protected RemoteRepositoryManager remoteManager;
+
+	/**
+	 * Remember processed projects/profiles.
+	 */
+	protected Set<Identity> processGuard = new HashSet<>();
+
+	/**
+	 * Remember processed projects/profiles.
+	 */
+	protected Map<Identity, EvaluationResult> processCache = new HashMap<>();
+
+	/**
+	 * Remember processed projects/profiles.
+	 */
+	protected EvaluationResult processResult(Profile profile, //
+			ProfileActivationContext context, //
+			ModelProblemCollector problems //
+	) {
+		Identity identity = identityFrom(profile, context);
+		if (processCache.containsKey(identity)) {
+			return processCache.get(identity);
+		} else {
+			EvaluationResult result = evaluateResult(profile, context, problems);
+			processCache.put(identity, result);
+			String report = String.format( //
+					"%s project='%s' profile='%s' result='%s'", //
+					prefix(), projectName(context), profileId(profile), result.render());
+			logger.info(report);
+			return result;
+		}
+	}
+
+	protected ThreadLocal<Identity> localIdentity = new ThreadLocal<>();
 
 	/**
 	 * Evaluate script expression provided by this activator property.
@@ -51,6 +90,7 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 			ModelProblemCollector problems //
 	) {
 		try {
+
 			// Required engine.
 			ScriptEngine engine = scriptEngine(activatorEngine());
 			if (engine == null) {
@@ -59,6 +99,7 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 				logger.error("Engine factory:\n" + renderEngineList());
 				return EvaluationResult.failure(error);
 			}
+
 			// Required script.
 			String script = propertyValue(profile);
 			if (script == null) {
@@ -66,6 +107,7 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 				reportProblem(error.getMessage(), error, profile, context, problems);
 				return EvaluationResult.failure(error);
 			}
+
 			// Required project.
 			Model project = resolveModel(context);
 			if (project == null) {
@@ -73,6 +115,7 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 				reportProblem(error.getMessage(), error, profile, context, problems);
 				return EvaluationResult.failure(error);
 			}
+
 			// Evaluation proper.
 			Bindings bindings = engine.createBindings();
 			bindings.putAll(bindingsFrom(context, project));
@@ -83,24 +126,20 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("%s result='%s'", prefix(), result));
 			}
+
 			// Convert result.
 			boolean value = Boolean.parseBoolean("" + result);
 			return EvaluationResult.success(value);
+
 		} catch (Exception error) {
+
 			// Report errors.
 			String script = propertyValue(profile);
 			String message = "Evaluation failure:\n" + script + "\n";
 			reportProblem(message, error, profile, context, problems);
 			return EvaluationResult.failure(error);
-		}
-	}
 
-	/**
-	 * Check if project was already processed.
-	 */
-	protected boolean hasProjectMemento(ProfileActivationContext context) {
-		File pomFile = projectPOM(context);
-		return pomFile != null && projectMemento.contains(pomFile);
+		}
 	}
 
 	/**
@@ -115,12 +154,15 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 		if (!presentInConfig(profile, context, problems)) {
 			return false;
 		}
-		registerProjectMemento(context);
-		EvaluationResult result = evaluateResult(profile, context, problems);
-		String report = String.format( //
-				"%s project='%s' profile='%s' result='%s'", //
-				prefix(), projectName(context), profileId(profile), result.render());
-		logger.info(report);
+
+		Identity identity = identityFrom(profile, context);
+
+		processGuard.add(identity);
+
+		EvaluationResult result = processResult(profile, context, problems);
+
+		processGuard.remove(identity);
+
 		if (result.valid) {
 			return result.value;
 		} else {
@@ -137,29 +179,14 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 			ProfileActivationContext context, //
 			ModelProblemCollector problems //
 	) {
-		// Process projects only once.
-		if (hasProjectMemento(context)) {
-			if (logger.isDebugEnabled()) {
-				File pomFile = projectPOM(context);
-				logger.debug(String.format("%s project present: %s", prefix(), pomFile));
-			}
+
+		Identity identity = identityFrom(profile, context);
+
+		if (processGuard.contains(identity)) {
 			return false;
 		}
-		// Profile detection proper.
-		return hasPropertyName(profile) && activatorName().equals(propertyName(profile));
-	}
 
-	/**
-	 * Remember processed projects to ensure only single activator invocation.
-	 */
-	protected void registerProjectMemento(ProfileActivationContext context) {
-		File pomFile = projectPOM(context);
-		if (pomFile != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s register project: %s", prefix(), pomFile));
-			}
-			projectMemento.add(pomFile);
-		}
+		return hasPropertyName(profile) && activatorName().equals(propertyName(profile));
 	}
 
 	/**
@@ -181,8 +208,7 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 	/**
 	 * Resolve project pom.xml model: interpolate properties and fields.
 	 * 
-	 * Note: invokes recursive call back to this activator, control activator
-	 * recursion by processing projects only once via {@link #projectMemento}.
+	 * @param profile
 	 */
 	protected Model resolveModel( //
 			ProfileActivationContext context //
@@ -190,7 +216,8 @@ public abstract class ActivatorBase implements ProfileActivator, ActivatorAny {
 		try {
 			ModelBuildingRequest request = buildRequest(context);
 			ModelBuildingResult result = builder.build(request);
-			return result.getEffectiveModel();
+			Model model = result.getEffectiveModel();
+			return model;
 		} catch (Exception error) {
 			logger.error(String.format("%s model build error: ", prefix(), error.getMessage()), error);
 			return null;

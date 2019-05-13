@@ -62,13 +62,19 @@
         <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
-            <version>2.4.0.Final</version>
+            <version>2.4.4.Final</version>
         </dependency>
 
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-jsr223</artifactId>
-            <version>2.4.13</version>
+            <version>2.5.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cat.inspiracio</groupId>
+            <artifactId>rhino-js-engine</artifactId>
+            <version>1.7.10</version>
         </dependency>
 
         <dependency>
@@ -101,20 +107,33 @@
                 </executions>
             </plugin>
 
+            <!-- Produce minimal javadoc. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+
             <!-- Invoke integration tests. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
                 <configuration>
-                    <!-- <debug>true</debug> -->
+                    <debug>false</debug>
                     <showErrors>true</showErrors>
                     <streamLogs>true</streamLogs>
                     <localRepositoryPath>${project.basedir}/test-repo</localRepositoryPath>
                     <pomIncludes>
-                        <include>test-case-model</include>
+                        <!-- TEST -->
+                        <include>test-model</include>
                         <include>test-groovyscript</include>
                         <include>test-javascript</include>
                         <include>test-mvelscript</include>
+                        <!-- ISSUE -->
+                        <!-- <include>issue-2</include> --><!-- TODO -->
+                        <include>issue-3</include>
                     </pomIncludes>
                 </configuration>
             </plugin>
